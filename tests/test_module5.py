@@ -82,29 +82,32 @@ def test_task5_module5():
 @pytest.mark.test_task6_module5
 def test_task6_module5():
 
-    fig_ax_tuple_found = False
-    plt_subplots_call_found = False
+        fig_ax_tuple_found = False
+        plt_subplots_call_found = False
 
-    try:
-        for x in load_ast_tree('budget/ExpenseCategories.py').body:
-             if (isinstance(x, ast.FunctionDef) and
-                    x.name == 'main'):
-                for y in x.body:
-                    if (isinstance(y, ast.Assign) and 
-                        isinstance(y.targets[0], ast.Tuple)):
-                        if (y.targets[0].elts[0].id == 'fig' and 
-                        y.targets[0].elts[1].id == 'ax'):
-                            fig_ax_tuple_found = True
+        try:
+                for x in load_ast_tree('budget/ExpenseCategories.py').body:
+                        if     (isinstance(x, ast.FunctionDef) and
+                        x.name == 'main'):
+                                for y in x.body:
+                                        if (
+                                            isinstance(y, ast.Assign) and
+                                            isinstance(y.targets[0], ast.Tuple)
+                                        ) and (
+                                            y.targets[0].elts[0].id == 'fig'
+                                            and
+                                            y.targets[0].elts[1].id == 'ax'):
+                                                fig_ax_tuple_found = True
 
-                            calls = utils.get_calls_from_child(y)
-                            if ('plt:subplots' in calls):
-                                plt_subplots_call_found = True
+                                                calls = utils.get_calls_from_child(y)
+                                                if ('plt:subplots' in calls):
+                                                    plt_subplots_call_found = True
 
-    except Exception as e:
-            # print('for print e = ' + str(e))
-            pass
-    
-    assert fig_ax_tuple_found and plt_subplots_call_found, 'Did you assign a Tuple `fig,ax` to a call to `plt.subplots()`?'
+        except Exception as e:
+                # print('for print e = ' + str(e))
+                pass
+
+        assert fig_ax_tuple_found and plt_subplots_call_found, 'Did you assign a Tuple `fig,ax` to a call to `plt.subplots()`?'
 
 
 # Assign labels []
@@ -144,68 +147,67 @@ def test_task8_module5():
 # Sum each set's expenses
 @pytest.mark.test_task9_module5
 def test_task9_module5():
-    fors = utils.get_for_loops(ExpenseCategories)
-    found_for_loop = False
-
-    for x in fors:
-        if 'category_exps:divided_set_comp' in x:
-            found_for_loop = True
-
-    for_str = 'category_exps:divided_set_comp:divided_expenses_sum:append:sum:x:amount:x:category_exps:0'
-    assert found_for_loop, 'Did you create a `for` loop that has an iterator called `category_exps` and loops through `divided_set_comp`?'
-    assert for_str in fors, 'Inside the for loop, did you call `divided_expenses_sum.append()`, with `x.amount for x in category_exps` as the argument?'
+        fors = utils.get_for_loops(ExpenseCategories)
+        found_for_loop = any('category_exps:divided_set_comp' in x for x in fors)
+        for_str = 'category_exps:divided_set_comp:divided_expenses_sum:append:sum:x:amount:x:category_exps:0'
+        assert found_for_loop, 'Did you create a `for` loop that has an iterator called `category_exps` and loops through `divided_set_comp`?'
+        assert for_str in fors, 'Inside the for loop, did you call `divided_expenses_sum.append()`, with `x.amount for x in category_exps` as the argument?'
 
 # Call ax.pie()
 # ax.pie(divided_expenses_sum, labels=labels, autopct='%1.1f%%')
 @pytest.mark.test_task10_module5
 def test_task10_module5():
 
-    ax_pie_found = False
-    correct_values = False
+        ax_pie_found = False
+        correct_values = False
 
-    try:
-        for x in load_ast_tree('budget/ExpenseCategories.py').body:
-            if (isinstance(x, ast.FunctionDef) and
-                    x.name == 'main'):
-                for y in x.body:
-                    if (isinstance(y, ast.Expr) and 
-                        isinstance(y.value, ast.Call)):
-                        if (hasattr(y.value.func, 'value') and
-                            y.value.func.value.id == 'ax' and
-                            y.value.func.attr == 'pie'):
-                            ax_pie_found = True
-                            call = utils.get_calls_from_child(y)
-                            if ('ax:pie:divided_expenses_sum:labels:labels:autopct:%1.1f%%' in call):
-                                correct_values = True
+        try:
+                for x in load_ast_tree('budget/ExpenseCategories.py').body:
+                        if     (isinstance(x, ast.FunctionDef) and
+                        x.name == 'main'):
+                                for y in x.body:
+                                        if (
+                                            isinstance(y, ast.Expr)
+                                            and isinstance(y.value, ast.Call)
+                                        ) and (hasattr(y.value.func, 'value')
+                                               and
+                                               y.value.func.value.id == 'ax'
+                                               and y.value.func.attr == 'pie'):
+                                                ax_pie_found = True
+                                                call = utils.get_calls_from_child(y)
+                                                if ('ax:pie:divided_expenses_sum:labels:labels:autopct:%1.1f%%' in call):
+                                                    correct_values = True
 
 
-    except Exception as e:
-            pass
+        except Exception as e:
+                pass
 
-    assert ax_pie_found, 'Did you call `ax.pie()`?'
-    assert correct_values, 'Did you call `ax.pie()` with the following parameters: `divided_expenses_sum, labels=labels, autopct=\'%1.1f%%\'`?'
+        assert ax_pie_found, 'Did you call `ax.pie()`?'
+        assert correct_values, 'Did you call `ax.pie()` with the following parameters: `divided_expenses_sum, labels=labels, autopct=\'%1.1f%%\'`?'
 
 
 # Call plt.show()
 @pytest.mark.test_task11_module5
 def test_task11_module5():
 
-    plt_show_found = False
+        plt_show_found = False
 
-    try:
-        for x in load_ast_tree('budget/ExpenseCategories.py').body:
-            if (isinstance(x, ast.FunctionDef) and
-                    x.name == 'main'):
-                for y in x.body:
-                    if (isinstance(y, ast.Expr) and 
-                            isinstance(y.value, ast.Call)):
-                        if(hasattr(y.value.func, 'value') and
-                                y.value.func.value.id == 'plt' and
-                                y.value.func.attr == 'show'):
-                            plt_show_found = True
+        try:
+                for x in load_ast_tree('budget/ExpenseCategories.py').body:
+                        if     (isinstance(x, ast.FunctionDef) and
+                        x.name == 'main'):
+                                for y in x.body:
+                                        if (
+                                            isinstance(y, ast.Expr)
+                                            and isinstance(y.value, ast.Call)
+                                        ) and (
+                                            hasattr(y.value.func, 'value')
+                                            and y.value.func.value.id == 'plt'
+                                            and y.value.func.attr == 'show'):
+                                                plt_show_found = True
 
-    except Exception as e:
-            # print('plt.show() e = ' + str(e))
-            pass
+        except Exception as e:
+                # print('plt.show() e = ' + str(e))
+                pass
 
-    assert plt_show_found, 'Did you call `plt.show()`?'
+        assert plt_show_found, 'Did you call `plt.show()`?'
