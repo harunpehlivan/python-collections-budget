@@ -26,12 +26,18 @@ def convert_ast(node, return_type='string', include_type=False, sep=':'):
         return dict(items)
 
     def _flatten_list(lst):
-        return sum(([x] if not isinstance(x, list) else _flatten_list(x) for x in lst), [])
+        return sum((_flatten_list(x) if isinstance(x, list) else [x] for x in lst), [])
 
     def _format(node):
         nonlocal count
         if isinstance(node, ast.AST):
-            d = _flatten_dict({ key: _format(value) for key, value in ast.iter_fields(node) if key != 'ctx' and key != 'type_comment' and key != 'kind'})
+            d = _flatten_dict(
+                {
+                    key: _format(value)
+                    for key, value in ast.iter_fields(node)
+                    if key not in ['ctx', 'type_comment', 'kind']
+                }
+            )
 
             if include_type:
                 d['type'] = node.__class__.__name__
